@@ -5,6 +5,8 @@ import {
   assertFieldEquals,
   assertFieldIsPresent,
   assertArrayIsNotEmpty,
+  assertArrayLengthEquals,
+  assertEveryArrayItemEqualsFields,
 } from '../../src/utils/apiAssertions';
 
 const SHOP_FLOW_TEST_CASES = [
@@ -43,7 +45,7 @@ SHOP_FLOW_TEST_CASES.forEach(({ searchQuery, requestedQuantity }) => {
       return user.id;
     });
 
-    const selectedProductId = await test.step('Search products and select one dynamically', async () => {
+    const selectedProduct = await test.step('Search products and select one dynamically', async () => {
       const { response, searchResult } = await productsApiClient.searchProducts(searchQuery);
 
       assertResponseIsSuccessful(response);
@@ -52,24 +54,27 @@ SHOP_FLOW_TEST_CASES.forEach(({ searchQuery, requestedQuantity }) => {
       const [selectedProduct] = searchResult.products;
       assertFieldIsPresent(selectedProduct.id, 'selected product id');
 
-      return selectedProduct.id;
+      return selectedProduct;
     });
 
     await test.step('Add the selected product to the cart', async () => {
       const { response, cart } = await cartsApiClient.addProductToCart(
         userId,
-        selectedProductId,
+        selectedProduct.id,
         requestedQuantity,
       );
 
       assertResponseIsSuccessful(response);
       assertFieldEquals(cart.userId, userId, 'cart user id');
 
-      const [cartProduct] = cart.products;
-      assertFieldEquals(cartProduct.id, selectedProductId, 'cart product id');
-      assertFieldEquals(cartProduct.quantity, requestedQuantity, 'cart product quantity');
+      assertArrayLengthEquals(cart.products, 1, 'cart products count');
+      assertEveryArrayItemEqualsFields(
+        cart.products,
+        { id: selectedProduct.id, quantity: requestedQuantity },
+        'cart product',
+      );
 
-      assertFieldIsPresent(cart.total, 'cart total');
+      assertFieldEquals(cart.total, selectedProduct.price * requestedQuantity, 'cart total');
       assertFieldEquals(cart.totalQuantity, requestedQuantity, 'cart total quantity');
     });
   });

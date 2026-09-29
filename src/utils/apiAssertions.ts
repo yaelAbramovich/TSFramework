@@ -23,6 +23,28 @@ export function assertArrayIsNotEmpty<TItem>(actualArray: TItem[], arrayDescript
   expect(actualArray.length, arrayDescription).toBeGreaterThan(0);
 }
 
+export function assertArrayLengthEquals<TItem>(
+  actualArray: TItem[],
+  expectedLength: number,
+  arrayDescription: string,
+): void {
+  expect(actualArray.length, arrayDescription).toBe(expectedLength);
+}
+
+export function assertEveryArrayItemEqualsFields<TItem>(
+  actualArray: TItem[],
+  expectedFields: Partial<TItem>,
+  arrayDescription: string,
+): void {
+  actualArray.forEach((actualItem, itemIndex) => {
+    (Object.keys(expectedFields) as (keyof TItem)[]).forEach((fieldKey) => {
+      expect(actualItem[fieldKey], `${arrayDescription}[${itemIndex}].${String(fieldKey)}`).toBe(
+        expectedFields[fieldKey],
+      );
+    });
+  });
+}
+
 export function assertResponseHasStatus(
   response: APIResponse,
   expectedStatus: number,

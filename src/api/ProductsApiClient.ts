@@ -5,6 +5,7 @@ import { HttpMethod } from './BaseApiClient';
 export interface Product {
   id: number;
   title: string;
+  price: number;
 }
 
 export interface ProductSearchResult {
