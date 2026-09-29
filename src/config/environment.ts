@@ -32,26 +32,29 @@ function readNumericEnvironmentVariableOrDefault(
 }
 
 export interface EnvironmentConfiguration {
-  uiBaseUrl: string;
-  apiBaseUrl: string;
-  uiUsername: string;
-  uiPassword: string;
+  applicationUrl: string;
+  applicationUsername: string;
+  applicationPassword: string;
+  apiUrl: string;
   defaultActionTimeoutMs: number;
   defaultNavigationTimeoutMs: number;
   logLevel: SupportedLogLevel;
 }
 
 export const environmentConfiguration: EnvironmentConfiguration = {
-  uiBaseUrl: readStringEnvironmentVariableOrDefault(
-    'UI_BASE_URL',
-    'https://the-internet.herokuapp.com',
+  applicationUrl: readStringEnvironmentVariableOrDefault(
+    'APPLICATION_URL',
+    'https://www.saucedemo.com/',
   ),
-  apiBaseUrl: readStringEnvironmentVariableOrDefault(
-    'API_BASE_URL',
-    'https://jsonplaceholder.typicode.com',
+  applicationUsername: readStringEnvironmentVariableOrDefault(
+    'APPLICATION_USERNAME',
+    'standard_user',
   ),
-  uiUsername: readStringEnvironmentVariableOrDefault('UI_USERNAME', 'tomsmith'),
-  uiPassword: readStringEnvironmentVariableOrDefault('UI_PASSWORD', 'SuperSecretPassword!'),
+  applicationPassword: readStringEnvironmentVariableOrDefault(
+    'APPLICATION_PASSWORD',
+    'secret_sauce',
+  ),
+  apiUrl: readStringEnvironmentVariableOrDefault('API_URL', 'https://dummyjson.com/'),
   defaultActionTimeoutMs: readNumericEnvironmentVariableOrDefault(
     'DEFAULT_ACTION_TIMEOUT_MS',
     10_000,

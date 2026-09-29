@@ -20,7 +20,7 @@ export default defineConfig({
     ['html', { open: 'never' }],
   ],
   use: {
-    baseURL: environmentConfiguration.uiBaseUrl,
+    baseURL: environmentConfiguration.applicationUrl,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -39,7 +39,7 @@ export default defineConfig({
       name: 'api',
       testDir: './tests/api',
       use: {
-        baseURL: environmentConfiguration.apiBaseUrl,
+        baseURL: environmentConfiguration.apiUrl,
       },
     },
   ],
