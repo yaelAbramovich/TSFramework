@@ -1,5 +1,5 @@
 {
-  "name": "full-framework",
+  "name": "ts-framework",
   "version": "1.0.0",
   "description": "TypeScript + Playwright automation framework supporting UI and API tests",
   "scripts": {
