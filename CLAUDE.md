@@ -46,6 +46,8 @@ See `tests/ui/example-login.spec.ts` and `tests/api/example-posts.spec.ts` for w
 
 **Configuration** (`src/config/environment.ts`) is the only place `process.env` is read. It exposes a typed `environmentConfiguration` object that `playwright.config.ts` and the rest of the code import. Add a new env var there first, never read `process.env.*` from anywhere else.
 
+**`.env.example` never contains real values — only variable names and dummy/placeholder values.** `.env.example` is a committed template showing which variables exist and their shape (`https://example.com/`, `your-username`, `your-password`, …), not a working configuration. The actual working values (base URLs, test credentials) live as defaults inside `readStringEnvironmentVariableOrDefault(...)` calls in `environment.ts` and/or in the developer's own `.env` (gitignored, never committed). This keeps a public/shared file from baking in a specific real system's URL or credentials, even when those aren't secret in the traditional sense.
+
 ## Non-obvious conventions (enforce when editing)
 
 1. **Page UI strings live in `src/utils/strings.json`.** The framework is single-language (English). Every literal tied to a page — locator names (`getByLabel('…')`, `getByRole('…', { name: '…' })`), `.describe('…')` text, page URL paths, error / success message fragments, element descriptions passed to `BasePage` helpers — lives in `src/utils/strings.json` under `pages.*`. Callers import the JSON directly: `import strings from '../utils/strings.json'` (enabled by `resolveJsonModule: true` in `tsconfig.json`), then reference `strings.pages.xxx.yyy`. Page-string templates that need interpolation use the `{placeholder}` syntax and are rendered inline with `.replace('{placeholder}', value)`. Tests import the same JSON — do NOT reintroduce `public static readonly` class constants for page strings.
@@ -86,11 +88,13 @@ See `tests/ui/example-login.spec.ts` and `tests/api/example-posts.spec.ts` for w
    ```
    This `.forEach` runs at file-load time to generate test cases — it's declarative test authoring, not runtime logic, so it does not conflict with convention 9's ban on loops inside a test body. A bare `const SEARCH_QUERY = 'phone'` hardcodes a single case and gives a reader no way to add another case without editing the test body itself.
 
+9b. **Every `expect(...)` takes a message, and that message describes the expectation — never phrase it as a failure report.** Playwright shows this message as the assertion's label whether the run is green or red, so wording like `` `Expected X to be Y, but got ${actual}` `` reads as if something already went wrong even on a passing test. Phrase it as a plain statement of what should be true — `` `Expected searchResult.total to be greater than 0` `` — and let Playwright's own matcher output surface the actual value when it fails; don't duplicate that in the message.
+
 ## Adding things
 
 - **New page object:** add strings under `pages.newPage.*` in `src/utils/strings.json` (include a `descriptions.*` sub-object for every locator's `.describe()` + `elementDescription` text). Create `src/pages/NewPage.ts` extending `BasePage`, `import strings from '../utils/strings.json'`, reference the strings via `strings.pages.newPage.*`, and register it as a fixture in `src/infrastructure/fixtures.ts` (add its type to `TestFixtures`, add the factory under `.extend<TestFixtures>({ ... })`). If a string has a `{placeholder}`, substitute it at the call site with `.replace('{placeholder}', value)`.
 - **New API client:** create `src/api/NewApiClient.ts` extending `BaseApiClient`. Hold each endpoint path as a `private static readonly` constant on the client; for parameterised paths add a small `private static` helper (e.g., `singleResourcePath(id: number): string`). Do NOT put API paths in `strings.json`.
-- **New env var:** add to `.env.example`, then to `EnvironmentConfiguration` interface + `environmentConfiguration` object in `src/config/environment.ts`.
+- **New env var:** add to `.env.example` with a dummy placeholder value (never a real working value), then to `EnvironmentConfiguration` interface + `environmentConfiguration` object in `src/config/environment.ts`, giving the real working default there.
 - **New log message:** write it as a template literal at the call site (e.g., `` this.logger.info(`Doing X with ${value}`) ``). Log copy does not go in `strings.json`.
 
 ## CI

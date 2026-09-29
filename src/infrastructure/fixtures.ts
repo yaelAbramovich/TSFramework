@@ -44,6 +44,7 @@ export const test = base.extend<TestFixtures>({
       response.status(),
       `accessToken fixture: login for "${environmentConfiguration.apiUsername}" returned status ${response.status()} instead of 200`,
     ).toBe(200);
+    expect(loginResult.accessToken).toBeTruthy();
 
     await use(loginResult.accessToken);
   },
