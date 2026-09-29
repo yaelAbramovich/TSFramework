@@ -1,5 +1,6 @@
 import { test as base, expect } from '@playwright/test';
 import { AuthApiClient } from '../api/AuthApiClient';
+import { ProductsApiClient } from '../api/ProductsApiClient';
 import { environmentConfiguration } from '../config/environment';
 
 /**
@@ -23,11 +24,15 @@ import { environmentConfiguration } from '../config/environment';
 export interface TestFixtures {
   authApiClient: AuthApiClient;
   accessToken: string;
+  productsApiClient: ProductsApiClient;
 }
 
 export const test = base.extend<TestFixtures>({
   authApiClient: async ({ request }, use) => {
     await use(new AuthApiClient(request));
+  },
+  productsApiClient: async ({ request }, use) => {
+    await use(new ProductsApiClient(request));
   },
   accessToken: async ({ authApiClient }, use) => {
     const { response, loginResult } = await authApiClient.login(
