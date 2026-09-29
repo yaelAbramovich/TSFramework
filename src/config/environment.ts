@@ -36,6 +36,8 @@ export interface EnvironmentConfiguration {
   applicationUsername: string;
   applicationPassword: string;
   apiUrl: string;
+  apiUsername: string;
+  apiPassword: string;
   defaultActionTimeoutMs: number;
   defaultNavigationTimeoutMs: number;
   logLevel: SupportedLogLevel;
@@ -55,6 +57,8 @@ export const environmentConfiguration: EnvironmentConfiguration = {
     'secret_sauce',
   ),
   apiUrl: readStringEnvironmentVariableOrDefault('API_URL', 'https://dummyjson.com/'),
+  apiUsername: readStringEnvironmentVariableOrDefault('API_USERNAME', 'emilys'),
+  apiPassword: readStringEnvironmentVariableOrDefault('API_PASSWORD', 'emilyspass'),
   defaultActionTimeoutMs: readNumericEnvironmentVariableOrDefault(
     'DEFAULT_ACTION_TIMEOUT_MS',
     10_000,

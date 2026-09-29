@@ -1,4 +1,6 @@
-import { test as base } from '@playwright/test';
+import { test as base, expect } from '@playwright/test';
+import { AuthApiClient } from '../api/AuthApiClient';
+import { environmentConfiguration } from '../config/environment';
 
 /**
  * Global Playwright fixtures — everything that is broadly useful across the
@@ -18,8 +20,28 @@ import { test as base } from '@playwright/test';
  * test-scoped, so construction stays aligned with the browser/request
  * lifecycle.
  */
-export interface TestFixtures {}
+export interface TestFixtures {
+  authApiClient: AuthApiClient;
+  accessToken: string;
+}
 
-export const test = base.extend<TestFixtures>({});
+export const test = base.extend<TestFixtures>({
+  authApiClient: async ({ request }, use) => {
+    await use(new AuthApiClient(request));
+  },
+  accessToken: async ({ authApiClient }, use) => {
+    const { response, loginResult } = await authApiClient.login(
+      environmentConfiguration.apiUsername,
+      environmentConfiguration.apiPassword,
+    );
+
+    expect(
+      response.status(),
+      `accessToken fixture: login for "${environmentConfiguration.apiUsername}" returned status ${response.status()} instead of 200`,
+    ).toBe(200);
+
+    await use(loginResult.accessToken);
+  },
+});
 
 export { expect } from '@playwright/test';
