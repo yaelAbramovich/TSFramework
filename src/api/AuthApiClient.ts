@@ -13,8 +13,19 @@ export interface LoginResult {
   image: string;
 }
 
+export interface CurrentUser {
+  id: number;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  gender: string;
+  image: string;
+}
+
 export class AuthApiClient extends BaseApiClient {
   private static readonly LOGIN_PATH = '/auth/login';
+  private static readonly CURRENT_USER_PATH = '/auth/me';
 
   public constructor(requestContext: APIRequestContext) {
     super(requestContext, 'AuthApiClient');
@@ -29,5 +40,15 @@ export class AuthApiClient extends BaseApiClient {
     });
     const loginResult = await this.parseResponseAsJson<LoginResult>(response);
     return { response, loginResult };
+  }
+
+  public async getCurrentUser(
+    accessToken: string,
+  ): Promise<{ response: APIResponse; currentUser: CurrentUser }> {
+    const response = await this.sendHttpRequest(HttpMethod.GET, AuthApiClient.CURRENT_USER_PATH, {
+      requestHeaders: { Authorization: `Bearer ${accessToken}` },
+    });
+    const currentUser = await this.parseResponseAsJson<CurrentUser>(response);
+    return { response, currentUser };
   }
 }
