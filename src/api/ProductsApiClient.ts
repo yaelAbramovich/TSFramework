@@ -16,6 +16,7 @@ export interface ProductSearchResult {
 
 export class ProductsApiClient extends BaseApiClient {
   private static readonly SEARCH_PATH = '/products/search';
+  private static readonly PRODUCTS_PATH = '/products';
 
   public constructor(requestContext: APIRequestContext) {
     super(requestContext, 'ProductsApiClient');
@@ -29,5 +30,16 @@ export class ProductsApiClient extends BaseApiClient {
     });
     const searchResult = await this.parseResponseAsJson<ProductSearchResult>(response);
     return { response, searchResult };
+  }
+
+  public async getProducts(
+    limit: number,
+    skip: number,
+  ): Promise<{ response: APIResponse; paginationResult: ProductSearchResult }> {
+    const response = await this.sendHttpRequest(HttpMethod.GET, ProductsApiClient.PRODUCTS_PATH, {
+      queryParameters: { limit, skip },
+    });
+    const paginationResult = await this.parseResponseAsJson<ProductSearchResult>(response);
+    return { response, paginationResult };
   }
 }
