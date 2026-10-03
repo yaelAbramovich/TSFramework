@@ -6,6 +6,7 @@ export class LoginPage extends BasePage {
   private readonly usernameField: Locator;
   private readonly passwordField: Locator;
   private readonly loginButton: Locator;
+  private readonly invalidCredentialsError: Locator;
 
   public constructor(page: Page) {
     super(page, 'LoginPage');
@@ -19,6 +20,9 @@ export class LoginPage extends BasePage {
     this.loginButton = this.page
       .getByRole('button', { name: strings.pages.login.loginButtonAccessibleName })
       .describe('Login button');
+    this.invalidCredentialsError = this.page
+      .getByRole('alert')
+      .describe('Invalid credentials error message');
   }
 
   public async navigateToLoginPage(): Promise<void> {
@@ -59,5 +63,13 @@ export class LoginPage extends BasePage {
     await this.assertUsernameFieldIsVisible();
     await this.assertPasswordFieldIsVisible();
     await this.assertLoginButtonIsEnabled();
+  }
+
+  public async assertInvalidCredentialsErrorIsVisible(): Promise<void> {
+    await this.assertElementHasExactText(
+      this.invalidCredentialsError,
+      strings.pages.login.invalidCredentialsErrorMessage,
+      'Invalid credentials error message',
+    );
   }
 }

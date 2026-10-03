@@ -5,6 +5,9 @@ export interface Product {
   id: number;
   title: string;
   price: number;
+  // Only present when the product id doesn't exist - the endpoint
+  // returns this error shape instead of the fields above.
+  message?: string;
 }
 
 export interface ProductSearchResult {
@@ -12,6 +15,9 @@ export interface ProductSearchResult {
   total: number;
   skip: number;
   limit: number;
+  // Only present when a pagination parameter is invalid - the endpoint
+  // returns this error shape instead of the fields above.
+  message?: string;
 }
 
 export class ProductsApiClient extends BaseApiClient {
@@ -41,5 +47,20 @@ export class ProductsApiClient extends BaseApiClient {
     });
     const paginationResult = await this.parseResponseAsJson<ProductSearchResult>(response);
     return { response, paginationResult };
+  }
+
+  public async getProductById(
+    productId: number,
+  ): Promise<{ response: APIResponse; product: Product }> {
+    const response = await this.sendHttpRequest(
+      HttpMethod.GET,
+      ProductsApiClient.singleProductPath(productId),
+    );
+    const product = await this.parseResponseAsJson<Product>(response);
+    return { response, product };
+  }
+
+  private static singleProductPath(productId: number): string {
+    return `${ProductsApiClient.PRODUCTS_PATH}/${productId}`;
   }
 }

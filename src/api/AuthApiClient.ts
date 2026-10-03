@@ -11,6 +11,9 @@ export interface LoginResult {
   lastName: string;
   gender: string;
   image: string;
+  // Only present when login fails - the endpoint returns this error shape
+  // instead of the fields above.
+  message?: string;
 }
 
 export interface CurrentUser {
