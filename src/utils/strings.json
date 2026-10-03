@@ -1,3 +1,12 @@
 {
-  "pages": {}
+  "pages": {
+    "login": {
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "signInButtonName": "Sign in"
+    },
+    "dashboard": {
+      "heading": "My Tasks"
+    }
+  }
 }

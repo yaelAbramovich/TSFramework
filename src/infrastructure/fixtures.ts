@@ -3,6 +3,9 @@ import { AuthApiClient, RegisteredUser } from '../api/AuthApiClient';
 import { TasksApiClient } from '../api/TasksApiClient';
 import { environmentConfiguration } from '../config/environment';
 import { generateUniqueEmail } from '../utils/testData';
+import { LoginPage } from '../pages/LoginPage';
+import { DashboardPage } from '../pages/DashboardPage';
+import { Logger } from './Logger';
 
 const DEFAULT_PASSWORD = 'Password123';
 const DEFAULT_NAME = 'QA Test';
@@ -14,6 +17,13 @@ export interface AuthenticatedApiContext {
   requestContext: APIRequestContext;
   user: RegisteredUser;
   credentials: { email: string; password: string };
+}
+
+export interface TaskCleanup {
+  // Deletion happens in this fixture's teardown (after the test body
+  // finishes, pass or fail), not inline here - that's what makes cleanup
+  // resilient to a failed assertion elsewhere in the test.
+  registerTaskForCleanup(taskId: string): void;
 }
 
 /**
@@ -39,6 +49,10 @@ export interface TestFixtures {
   authenticatedApiContext: AuthenticatedApiContext;
   authenticatedApiClient: AuthApiClient;
   tasksApiClient: TasksApiClient;
+  authenticatedTasksApiClient: TasksApiClient;
+  taskCleanup: TaskCleanup;
+  loginPage: LoginPage;
+  dashboardPage: DashboardPage;
 }
 
 export const test = base.extend<TestFixtures>({
@@ -50,6 +64,39 @@ export const test = base.extend<TestFixtures>({
   },
   authenticatedApiClient: async ({ authenticatedApiContext }, use) => {
     await use(new AuthApiClient(authenticatedApiContext.requestContext));
+  },
+  authenticatedTasksApiClient: async ({ authenticatedApiContext }, use) => {
+    await use(new TasksApiClient(authenticatedApiContext.requestContext));
+  },
+  loginPage: async ({ page }, use) => {
+    await use(new LoginPage(page));
+  },
+  dashboardPage: async ({ page }, use) => {
+    await use(new DashboardPage(page));
+  },
+  taskCleanup: async ({ authenticatedTasksApiClient }, use) => {
+    const logger = new Logger('TaskCleanup');
+    const taskIdsToDelete: string[] = [];
+
+    await use({
+      registerTaskForCleanup: (taskId: string) => {
+        taskIdsToDelete.push(taskId);
+      },
+    });
+
+    // Runs after the test body, regardless of whether its assertions
+    // passed or failed. Cleanup itself must never throw - that would mask
+    // the test's own result - so a failed delete is logged, not asserted.
+    for (const taskId of taskIdsToDelete) {
+      try {
+        const { response } = await authenticatedTasksApiClient.deleteTask(taskId);
+        if (!response.ok()) {
+          logger.warn(`Cleanup: DELETE /api/tasks/${taskId} returned status ${response.status()}`);
+        }
+      } catch (cleanupError) {
+        logger.warn(`Cleanup: failed to delete task ${taskId} - ${String(cleanupError)}`);
+      }
+    }
   },
   authenticatedApiContext: async ({ playwright, authApiClient }, use) => {
     const email = generateUniqueEmail();
