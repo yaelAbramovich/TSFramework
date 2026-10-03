@@ -100,7 +100,6 @@ Open `src/utils/strings.json`. Under `pages.<lowerCamelKey>` (strip the `Page` s
 
 ```json
 "checkout": {
-  "urlPath": "/checkout",
   "pageTitleHeadingText": "Checkout",
   "placeOrderButtonAccessibleName": "Place order",
   "orderConfirmedFlashFragment": "Your order is confirmed"
@@ -109,7 +108,8 @@ Open `src/utils/strings.json`. Under `pages.<lowerCamelKey>` (strip the `Page` s
 
 Rules:
 
-- Customer-facing text only: locator accessible names (what you pass as `getByLabel('…')`, as the `name` in `getByRole('…', { name: '…' })`), URL paths, error/success message fragments. Never reintroduce `public static readonly` class constants for these — import the JSON directly.
+- **Customer-facing text only, nothing else.** Locator accessible names (what you pass as `getByLabel('…')`, as the `name` in `getByRole('…', { name: '…' })`), error/success message fragments — text the *application's end user* actually sees, types, or reads. Never reintroduce `public static readonly` class constants for these — import the JSON directly. If the page is located entirely via `getByTestId` (no accessible name to match on), it may need no `pages.<key>` entry at all.
+- **Never put automation/framework-internal strings here** — not `.describe()` text, not the `elementDescription` argument, not log messages, and **not the page's URL path**. None of these are seen by the application's user; they only ever show up in trace viewer, logs, or reports. All of them are inline string literals at the call site instead. The page's URL path specifically is a `private static readonly` constant on the POM class (e.g. `private static readonly CHECKOUT_URL_PATH = '/checkout';`), the same pattern API clients use for endpoint paths — never a `strings.json` entry.
 - **No `descriptions.*` sub-object.** `.describe()` text and `elementDescription` arguments are internal, test-author-facing strings (they only ever appear in trace viewer/logs/reports) — they are inline literals at the call site (Step 2), never entries in `strings.json`.
 - Templates that need runtime values use `{placeholder}` syntax. In the POM, substitute them with `.replace('{placeholder}', value)` at the call site. Do **not** reintroduce a `formatString` / resolver helper — the project explicitly removed it.
 
@@ -183,7 +183,7 @@ Rule encoding (these map 1-to-1 to the repo's POM rules — verify each one befo
 
 | # | Rule | How it's enforced |
 |---|---|---|
-| 1 | No hard-coded customer-facing strings | Accessible names, URL paths, message fragments come from `strings.pages.<key>.*`. `.describe()`/`elementDescription` text is the one exception — those are inline literals, never in `strings.json` (Step 3). |
+| 1 | No hard-coded customer-facing strings; no automation-internal strings in `strings.json` | Accessible names and message fragments come from `strings.pages.<key>.*`. `.describe()`/`elementDescription` text, log messages, and the page's URL path are the exceptions — those are inline literals / a `private static readonly` constant, never in `strings.json` (Step 3). |
 | 2 | Uses `BasePage` helpers | Every action / assertion goes through `clickOnElement`, `fillElementWithText`, `assertElementIsVisible`, etc. Missing helper → added to BasePage in Step 4. |
 | 3 | Locator priority | `getByRole` → `getByText` → `getByLabel` → `getByPlaceholder` → `getByAltText` → `getByTitle` → `getByTestId` → chain/filter → `locator()` only as absolute last resort (per <https://playwright.dev/docs/locators>). |
 | 4 | `.describe()` on every locator, inline | Constructor-level and inline/dynamic locators both chain `.describe('…')` with a plain string literal. |
@@ -194,14 +194,16 @@ Rule encoding (these map 1-to-1 to the repo's POM rules — verify each one befo
 | 9 | Lives under `src/pages/` | File path is `src/pages/<ClassName>.ts`. |
 | 10 | No implicit waits | Web-first assertions (`expect(locator).toBeVisible()` wrapped as `assertElementIsVisible`). No `waitForTimeout`, no `locator.waitFor()` as a pre-action gate. |
 | 11 | Assertions at the bottom | All `assertXxx()` methods come last, after atomic + composite actions. |
-| 12 | Has a `validate<PageName>PageDisplay()` method | See Step 6 — the very last method in the class, after the other assertions. |
+| 12 | Has a `validate<PageName>PageDisplay()` method covering every element type | See Step 6 — the very last method in the class, after the other assertions; asserts visibility of static elements (headings/tables/text) and visibility + enabled/clickable state of interactive ones (buttons/inputs/links), not just one element type. |
+
+**Editing an existing POM file (not generating a fresh one).** The same ordering rule applies when adding a single new method to a POM that already exists: validation/assertion methods always go at the very end of the file — if the new method is an `assertXxx()`/`validateXxx()` check, add it after every other existing method, respecting `validate<PageName>PageDisplay()` staying the last method of all. If the new method is anything else (a locator field, an atomic action, a composite action), insert it before the block of validation methods, never after — the validation block at the bottom must never have non-validation code below or inside it.
 
 ### Step 6 — Write a `validate<PageName>PageDisplay()` method
 
 Every POM must include one method whose only job is to confirm the page has actually rendered and is ready to use. This is what turns "the page silently failed to load" into one clear, immediate assertion failure, instead of some unrelated later action timing out confusingly — directly reducing flaky tests.
 
 - Name it `validate<PageName>PageDisplay()` (e.g. `validateCheckoutPageDisplay()`), one no-argument method, placed **after** the other assertion methods — the last method in the class.
-- It must assert every element a user needs in order to use this page: at minimum, the key fields/buttons/headings that signal "this page rendered correctly" — built from `assertElementIsVisible`/`assertElementIsEnabled` (or an equivalent existing `BasePage` helper), never a fresh ad hoc check.
+- It must assert every element a user needs in order to use this page, covering every element *type* present on the page, not just one kind — buttons, headings, tables, text areas/inputs, links, and any other structural element the page has. For each one, assert the property that actually matters for that element: visible for static content (headings, tables, text), visible **and** enabled/clickable for anything interactive (buttons, inputs, links) — built from `assertElementIsVisible`/`assertElementIsEnabled` (or an equivalent existing `BasePage` helper), never a fresh ad hoc check. A validation that only checks visibility and skips enabled/clickable state on interactive elements is incomplete.
 - If the page's identity can also be meaningfully confirmed by its URL, include that via an `assertCurrentPageUrlContains`-style helper — but skip it if the URL genuinely can't distinguish this page from another (e.g. a page living at `/` with no differentiating path segment; don't assert something that would pass for any page on the domain).
 - Compose it from smaller, single-purpose assert methods (`assertXFieldIsVisible()`, `assertYButtonIsEnabled()`, …) rather than one monolithic body — same atomic-then-composite shape as actions.
 - The caller (a test, or `test.beforeEach`) is expected to call this right after whatever action navigated to the page, before doing anything else with it.
@@ -264,13 +266,15 @@ If the user's request would violate any of the rules below, stop and explain why
 3. **Any `page.waitForTimeout(...)`, arbitrary `setTimeout`, or `.waitFor({ state: 'visible' })` as a pre-action gate.** Web-first assertions only (Playwright best practices: "use web-first assertions", "avoid manual assertions without awaiting").
 4. **Manual assertions that don't await** — e.g. `expect(await locator.isVisible()).toBe(true)`. These don't retry and will flake. Use the `assertElementIsVisible` wrapper.
 5. **Hard-coded *customer-facing* strings in the POM body** (labels, headings, button names the user sees), even for "obvious" ones. They go in `strings.json`. This does **not** apply to `.describe()`/`elementDescription` text — those are internal, test-author-facing strings and belong inline, never in `strings.json` (Step 3).
+5a. **Any automation/framework-internal string put into `strings.json`** — `.describe()` text, `elementDescription` arguments, log messages, or a page's URL path. `strings.json` is for text the application's end user sees, types, or reads, nothing else; a URL path is a `private static readonly` constant on the POM class instead (Step 3).
 6. **Locator built from a CSS / XPath selector** when a `data-test*` attribute, semantic `getBy*`, or chain-and-filter alternative exists. Ask for a test id instead.
 7. **Locator that relies on implementation details** (CSS class names, component IDs, framework-generated attributes) — Playwright best practices: "test user-visible behavior". The locator must be expressible in terms the user can see.
 8. **`getByTestId` reached for before role/text/label were genuinely ruled out.** Per the documented priority order, test id is a fallback, not a default — check the real DOM for a role, label, or visible text first.
 9. **Third-party calls in the POM or test assertions.** Mock them with `page.route()` at the test level; the POM itself stays third-party-agnostic.
 10. **Class name that doesn't end in `Page` or doesn't describe a real purpose.**
 11. **Skipping fixture registration.** Every POM must be reachable as a fixture in `src/infrastructure/fixtures.ts`; unreachable POMs mean tests can't use them.
-12. **Skipping `validate<PageName>PageDisplay()`.** Every POM needs one (Step 6) — a POM a test can't confirm actually loaded is how flaky tests happen.
+12. **Skipping `validate<PageName>PageDisplay()`, or writing one that only covers a single element type.** Every POM needs one (Step 6), and it must cover every element type on the page (buttons, tables, text areas, headings, links, …) — visible for static content, visible + enabled/clickable for interactive elements. A POM a test can't confirm actually loaded (or loaded correctly) is how flaky tests happen.
+12a. **Adding a new method to an existing POM in the wrong position.** Validation/assertion methods always land at the end of the file, after every other method, with `validate<PageName>PageDisplay()` last of all; any non-validation method (locator, atomic action, composite action) goes before that validation block, never after or inside it.
 13. **Reintroducing a `StringResolver` / `formatString` / locale bundle.** This project deliberately removed those — use `.replace('{placeholder}', value)` at the call site for templated strings.
 
 ## Example invocation
