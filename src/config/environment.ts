@@ -21,20 +21,16 @@ function getEnvNumber(name: string, defaultValue: number): number {
 }
 
 export interface EnvironmentConfiguration {
-  uiBaseUrl: string;
+  baseUrl: string;
   apiBaseUrl: string;
-  uiUsername: string;
-  uiPassword: string;
   defaultActionTimeoutMs: number;
   defaultNavigationTimeoutMs: number;
   logLevel: SupportedLogLevel;
 }
 
 export const environmentConfiguration: EnvironmentConfiguration = {
-  uiBaseUrl: getEnv('UI_BASE_URL', 'https://the-internet.herokuapp.com'),
-  apiBaseUrl: getEnv('API_BASE_URL', 'https://jsonplaceholder.typicode.com'),
-  uiUsername: getEnv('UI_USERNAME', 'tomsmith'),
-  uiPassword: getEnv('UI_PASSWORD', 'SuperSecretPassword!'),
+  baseUrl: getEnv('BASE_URL', 'https://dojo.upexgalaxy.com'),
+  apiBaseUrl: getEnv('API_BASE_URL', 'https://dojo.upexgalaxy.com'),
   defaultActionTimeoutMs: getEnvNumber('DEFAULT_ACTION_TIMEOUT_MS', 10_000),
   defaultNavigationTimeoutMs: getEnvNumber('DEFAULT_NAVIGATION_TIMEOUT_MS', 30_000),
   logLevel: getEnv('LOG_LEVEL', 'info') as SupportedLogLevel,

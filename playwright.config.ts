@@ -20,7 +20,7 @@ export default defineConfig({
     ['html', { open: 'never' }],
   ],
   use: {
-    baseURL: environmentConfiguration.uiBaseUrl,
+    baseURL: environmentConfiguration.baseUrl,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
