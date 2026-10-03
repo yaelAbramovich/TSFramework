@@ -7,17 +7,16 @@ name: Playwright tests
 on:
   workflow_dispatch:
     inputs:
-      tag:
-        description: 'Playwright tag to run. Select "all" to run every test.'
+      suite:
+        description: 'Which suite to run. Select "all" to run everything together.'
         required: true
         default: all
         type: choice
         options:
           - all
-          - smoke
-          - regression
           - api
-          - login
+          - ui
+          - e2e
       # environment:
       #   description: 'Target environment to run against. Each environment has
       #     its own .env file (e.g. .env.dev, .env.staging, .env.prod) that is
@@ -56,11 +55,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Run API tests
-        run: npx playwright test --project=api ${{ inputs.tag != 'all' && format('--grep "@{0}"', inputs.tag) || '' }}
-
-      - name: Run UI tests (chromium)
-        run: npx playwright test --project=ui ${{ inputs.tag != 'all' && format('--grep "@{0}"', inputs.tag) || '' }}
+      # A single invocation (either the full suite or one selected project),
+      # so exactly one HTML report is produced - running multiple separate
+      # `playwright test` invocations would have each one overwrite the
+      # previous step's report before it could be uploaded.
+      - name: Run tests
+        run: npm run test${{ inputs.suite != 'all' && format(':{0}', inputs.suite) || '' }}
 
       - name: Upload Playwright report
         if: always()

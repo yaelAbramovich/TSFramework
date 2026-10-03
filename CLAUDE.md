@@ -12,6 +12,7 @@ npm run lint                             # eslint . (no-floating-promises is enf
 npm test                                 # run all tests, all projects
 npm run test:ui                          # only UI specs (tests/ui)
 npm run test:api                         # only API specs (tests/api)
+npm run test:e2e                         # only multi-page journey specs (tests/e2e)
 npm run test:headed                      # UI in headed mode
 npm run test:debug                       # Playwright inspector
 npm run report                           # open last HTML report
@@ -101,4 +102,4 @@ See `tests/ui/example-login.spec.ts` and `tests/api/example-posts.spec.ts` for w
 
 ## CI
 
-`.github/workflows/playwright.yml` installs **only chromium** (per docs' "install only browsers you need"), then runs typecheck → lint → API tests → UI chromium. Traces are captured on the first retry (`trace: 'on-first-retry'` in `playwright.config.ts`); the HTML report is uploaded as an artifact.
+`.github/workflows/playwright.yml` is manual-only (`workflow_dispatch`), with a `suite` input (`all` / `api` / `ui` / `e2e`) mapped straight to the matching `npm run test[:suite]` script. It installs **only chromium** (per docs' "install only browsers you need"), runs typecheck → lint, then exactly one `playwright test` invocation — never multiple separate ones in the same job, since each would overwrite the previous step's HTML report before it could be uploaded. Traces, screenshots, and videos are retained for any failed test (`trace: 'retain-on-failure'`, `screenshot: 'only-on-failure'`, `video: 'retain-on-failure'` in `playwright.config.ts` — not gated on a retry, since local runs have 0 retries); the HTML report is uploaded as an artifact.
