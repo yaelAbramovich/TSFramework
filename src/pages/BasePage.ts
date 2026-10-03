@@ -74,6 +74,25 @@ export abstract class BasePage {
     return (textContent ?? '').trim();
   }
 
+  protected async getAllVisibleTextsFromElements(
+    elementsLocator: Locator,
+    elementsDescription: string,
+  ): Promise<string[]> {
+    this.logger.info(`Getting all texts from elements: ${elementsDescription}`);
+    return elementsLocator.allTextContents();
+  }
+
+  protected async selectOptionFromDropdown(
+    elementLocator: Locator,
+    optionLabel: string,
+    elementDescription: string,
+  ): Promise<void> {
+    this.logger.info(
+      `Selecting option "${optionLabel}" from dropdown: ${elementDescription}`,
+    );
+    await elementLocator.selectOption({ label: optionLabel });
+  }
+
   // ---------- Web-first assertions (auto-retry until timeout) ----------
 
   protected async assertElementIsVisible(

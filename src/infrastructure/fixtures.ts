@@ -1,6 +1,8 @@
 import { test as base, expect } from '@playwright/test';
 import { AuthApiClient } from '../api/AuthApiClient';
 import { ProductsApiClient } from '../api/ProductsApiClient';
+import { LoginPage } from '../pages/LoginPage';
+import { ProductsPage } from '../pages/ProductsPage';
 import { environmentConfiguration } from '../config/environment';
 
 /**
@@ -25,6 +27,8 @@ export interface TestFixtures {
   authApiClient: AuthApiClient;
   accessToken: string;
   productsApiClient: ProductsApiClient;
+  loginPage: LoginPage;
+  productsPage: ProductsPage;
 }
 
 export const test = base.extend<TestFixtures>({
@@ -33,6 +37,12 @@ export const test = base.extend<TestFixtures>({
   },
   productsApiClient: async ({ request }, use) => {
     await use(new ProductsApiClient(request));
+  },
+  loginPage: async ({ page }, use) => {
+    await use(new LoginPage(page));
+  },
+  productsPage: async ({ page }, use) => {
+    await use(new ProductsPage(page));
   },
   accessToken: async ({ authApiClient }, use) => {
     const { response, loginResult } = await authApiClient.login(
