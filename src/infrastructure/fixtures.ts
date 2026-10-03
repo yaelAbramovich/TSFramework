@@ -86,15 +86,28 @@ export const test = base.extend<TestFixtures>({
 
     // Runs after the test body, regardless of whether its assertions
     // passed or failed. Cleanup itself must never throw - that would mask
-    // the test's own result - so a failed delete is logged, not asserted.
+    // the test's own result - so a failed delete (or failed verification
+    // that it actually persisted) is logged, not asserted.
     for (const taskId of taskIdsToDelete) {
       try {
-        const { response } = await authenticatedTasksApiClient.deleteTask(taskId);
-        if (!response.ok()) {
-          logger.warn(`Cleanup: DELETE /api/tasks/${taskId} returned status ${response.status()}`);
+        const { response: deleteResponse } = await authenticatedTasksApiClient.deleteTask(taskId);
+        if (!deleteResponse.ok()) {
+          logger.warn(
+            `Cleanup: DELETE /api/tasks/${taskId} returned status ${deleteResponse.status()}`,
+          );
+          continue;
+        }
+
+        // Verify the deletion actually persisted, through the API, instead
+        // of trusting the DELETE response alone.
+        const { response: getResponse } = await authenticatedTasksApiClient.getTaskById(taskId);
+        if (getResponse.status() !== 404) {
+          logger.warn(
+            `Cleanup: task ${taskId} is still retrievable (GET returned status ${getResponse.status()}) after delete - deletion may not have persisted`,
+          );
         }
       } catch (cleanupError) {
-        logger.warn(`Cleanup: failed to delete task ${taskId} - ${String(cleanupError)}`);
+        logger.warn(`Cleanup: failed to delete/verify task ${taskId} - ${String(cleanupError)}`);
       }
     }
   },
