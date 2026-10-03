@@ -7,9 +7,14 @@
       "loginButtonAccessibleName": "Login"
     },
     "products": {
+      "pageTitleText": "Products",
       "sortDropdownAccessibleName": "Sort products",
       "priceLowToHighSortOptionText": "Price (low to high)",
-      "addToCartButtonAccessibleName": "Add to cart"
+      "addToCartButtonAccessibleName": "Add to cart",
+      "viewProductDetailsAccessibleNamePrefix": "View details for"
+    },
+    "productDetails": {
+      "backToProductsButtonAccessibleName": "Back to products"
     }
   }
 }

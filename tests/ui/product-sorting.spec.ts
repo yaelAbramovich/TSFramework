@@ -9,7 +9,9 @@ import { environmentConfiguration } from '../../src/config/environment';
 ].forEach(({ username, password }) => {
   test('Sorting products by price sorts them correctly', async ({ loginPage, productsPage }) => {
     await loginPage.navigateToLoginPage();
+    await loginPage.validateLoginPageDisplay();
     await loginPage.submitLoginFormWithCredentials(username, password);
+    await productsPage.validateProductsPageDisplay();
 
     const namesBeforeSort = await productsPage.getProductNames();
     const pricesBeforeSort = await productsPage.getProductPrices();

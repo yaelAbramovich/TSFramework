@@ -13,6 +13,7 @@ export class ProductCard extends BasePage {
   private readonly priceField: Locator;
   private readonly descriptionField: Locator;
   private readonly addToCartButton: Locator;
+  private readonly viewProductDetailsLink: Locator;
 
   public constructor(page: Page, rootLocator: Locator) {
     super(page, 'ProductCard');
@@ -25,6 +26,12 @@ export class ProductCard extends BasePage {
     this.addToCartButton = rootLocator
       .getByRole('button', { name: strings.pages.products.addToCartButtonAccessibleName })
       .describe('Add to cart button');
+    this.viewProductDetailsLink = rootLocator
+      .getByRole('button', {
+        name: new RegExp(`^${strings.pages.products.viewProductDetailsAccessibleNamePrefix}`),
+      })
+      .first()
+      .describe('View product details link');
   }
 
   public async getProductName(): Promise<string> {
@@ -42,5 +49,9 @@ export class ProductCard extends BasePage {
 
   public async clickAddToCartButton(): Promise<void> {
     await this.clickOnElement(this.addToCartButton, 'Add to cart button');
+  }
+
+  public async clickViewProductDetailsLink(): Promise<void> {
+    await this.clickOnElement(this.viewProductDetailsLink, 'View product details link');
   }
 }

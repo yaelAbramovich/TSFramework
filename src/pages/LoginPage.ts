@@ -42,4 +42,22 @@ export class LoginPage extends BasePage {
     await this.fillPasswordField(password);
     await this.clickLoginButton();
   }
+
+  public async assertUsernameFieldIsVisible(): Promise<void> {
+    await this.assertElementIsVisible(this.usernameField, 'Username input field');
+  }
+
+  public async assertPasswordFieldIsVisible(): Promise<void> {
+    await this.assertElementIsVisible(this.passwordField, 'Password input field');
+  }
+
+  public async assertLoginButtonIsEnabled(): Promise<void> {
+    await this.assertElementIsEnabled(this.loginButton, 'Login button');
+  }
+
+  public async validateLoginPageDisplay(): Promise<void> {
+    await this.assertUsernameFieldIsVisible();
+    await this.assertPasswordFieldIsVisible();
+    await this.assertLoginButtonIsEnabled();
+  }
 }

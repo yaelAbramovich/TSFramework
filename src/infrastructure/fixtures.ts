@@ -3,6 +3,9 @@ import { AuthApiClient } from '../api/AuthApiClient';
 import { ProductsApiClient } from '../api/ProductsApiClient';
 import { LoginPage } from '../pages/LoginPage';
 import { ProductsPage } from '../pages/ProductsPage';
+import { ProductDetailsPage } from '../pages/ProductDetailsPage';
+import { Header } from '../pages/Header';
+import { CartPage } from '../pages/CartPage';
 import { environmentConfiguration } from '../config/environment';
 
 /**
@@ -29,6 +32,9 @@ export interface TestFixtures {
   productsApiClient: ProductsApiClient;
   loginPage: LoginPage;
   productsPage: ProductsPage;
+  productDetailsPage: ProductDetailsPage;
+  header: Header;
+  cartPage: CartPage;
 }
 
 export const test = base.extend<TestFixtures>({
@@ -43,6 +49,15 @@ export const test = base.extend<TestFixtures>({
   },
   productsPage: async ({ page }, use) => {
     await use(new ProductsPage(page));
+  },
+  productDetailsPage: async ({ page }, use) => {
+    await use(new ProductDetailsPage(page));
+  },
+  header: async ({ page }, use) => {
+    await use(new Header(page));
+  },
+  cartPage: async ({ page }, use) => {
+    await use(new CartPage(page));
   },
   accessToken: async ({ authApiClient }, use) => {
     const { response, loginResult } = await authApiClient.login(

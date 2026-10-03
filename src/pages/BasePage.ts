@@ -74,6 +74,19 @@ export abstract class BasePage {
     return (textContent ?? '').trim();
   }
 
+  protected async getVisibleTextFromElementOrEmpty(
+    elementLocator: Locator,
+    elementDescription: string,
+  ): Promise<string> {
+    this.logger.info(`Getting text from element (empty if absent): ${elementDescription}`);
+    const elementCount = await elementLocator.count();
+    if (elementCount === 0) {
+      return '';
+    }
+    const textContent = await elementLocator.textContent();
+    return (textContent ?? '').trim();
+  }
+
   protected async getAllVisibleTextsFromElements(
     elementsLocator: Locator,
     elementsDescription: string,
@@ -101,6 +114,14 @@ export abstract class BasePage {
   ): Promise<void> {
     this.logger.debug(`Asserting element is visible: ${elementDescription}`);
     await expect(elementLocator, elementDescription).toBeVisible();
+  }
+
+  protected async assertElementIsEnabled(
+    elementLocator: Locator,
+    elementDescription: string,
+  ): Promise<void> {
+    this.logger.debug(`Asserting element is enabled: ${elementDescription}`);
+    await expect(elementLocator, elementDescription).toBeEnabled();
   }
 
   protected async assertElementIsHidden(
@@ -131,5 +152,16 @@ export abstract class BasePage {
       `Asserting element "${elementDescription}" contains text: ${expectedText}`,
     );
     await expect(elementLocator, elementDescription).toContainText(expectedText);
+  }
+
+  protected async assertCurrentPageUrlContains(
+    expectedUrlFragment: string,
+    pageDescription: string,
+  ): Promise<void> {
+    this.logger.debug(
+      `Asserting current page URL contains "${expectedUrlFragment}": ${pageDescription}`,
+    );
+    const escapedFragment = expectedUrlFragment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    await expect(this.page, pageDescription).toHaveURL(new RegExp(escapedFragment));
   }
 }
