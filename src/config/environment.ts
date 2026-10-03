@@ -5,30 +5,19 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 export type SupportedLogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-function readEnvironmentVariableOrUndefined(variableName: string): string | undefined {
-  const rawValue = process.env[variableName];
-  if (rawValue === undefined || rawValue.trim() === '') return undefined;
-  return rawValue.trim();
+function getEnv(name: string, defaultValue: string): string {
+  const value = process.env[name]?.trim();
+  return value || defaultValue;
 }
 
-function readStringEnvironmentVariableOrDefault(
-  variableName: string,
-  defaultValue: string,
-): string {
-  return readEnvironmentVariableOrUndefined(variableName) ?? defaultValue;
-}
-
-function readNumericEnvironmentVariableOrDefault(
-  variableName: string,
-  defaultValue: number,
-): number {
-  const rawValue = readEnvironmentVariableOrUndefined(variableName);
-  if (rawValue === undefined) return defaultValue;
-  const parsedValue = Number(rawValue);
-  if (Number.isNaN(parsedValue)) throw new Error(
-      `Environment variable "${variableName}" must be a number but got "${rawValue}"`,
-    )
-  return parsedValue;
+function getEnvNumber(name: string, defaultValue: number): number {
+  const value = process.env[name]?.trim();
+  if (!value) return defaultValue;
+  const parsed = Number(value);
+  if (Number.isNaN(parsed)) {
+    throw new Error(`Environment variable "${name}" must be a number but got "${value}"`);
+  }
+  return parsed;
 }
 
 export interface EnvironmentConfiguration {
@@ -42,23 +31,11 @@ export interface EnvironmentConfiguration {
 }
 
 export const environmentConfiguration: EnvironmentConfiguration = {
-  uiBaseUrl: readStringEnvironmentVariableOrDefault(
-    'UI_BASE_URL',
-    'https://the-internet.herokuapp.com',
-  ),
-  apiBaseUrl: readStringEnvironmentVariableOrDefault(
-    'API_BASE_URL',
-    'https://jsonplaceholder.typicode.com',
-  ),
-  uiUsername: readStringEnvironmentVariableOrDefault('UI_USERNAME', 'tomsmith'),
-  uiPassword: readStringEnvironmentVariableOrDefault('UI_PASSWORD', 'SuperSecretPassword!'),
-  defaultActionTimeoutMs: readNumericEnvironmentVariableOrDefault(
-    'DEFAULT_ACTION_TIMEOUT_MS',
-    10_000,
-  ),
-  defaultNavigationTimeoutMs: readNumericEnvironmentVariableOrDefault(
-    'DEFAULT_NAVIGATION_TIMEOUT_MS',
-    30_000,
-  ),
-  logLevel: readStringEnvironmentVariableOrDefault('LOG_LEVEL', 'info') as SupportedLogLevel,
+  uiBaseUrl: getEnv('UI_BASE_URL', 'https://the-internet.herokuapp.com'),
+  apiBaseUrl: getEnv('API_BASE_URL', 'https://jsonplaceholder.typicode.com'),
+  uiUsername: getEnv('UI_USERNAME', 'tomsmith'),
+  uiPassword: getEnv('UI_PASSWORD', 'SuperSecretPassword!'),
+  defaultActionTimeoutMs: getEnvNumber('DEFAULT_ACTION_TIMEOUT_MS', 10_000),
+  defaultNavigationTimeoutMs: getEnvNumber('DEFAULT_NAVIGATION_TIMEOUT_MS', 30_000),
+  logLevel: getEnv('LOG_LEVEL', 'info') as SupportedLogLevel,
 };
