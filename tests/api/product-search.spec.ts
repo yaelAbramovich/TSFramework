@@ -1,4 +1,5 @@
 import { test, expect } from '../../src/infrastructure/fixtures';
+import { productSearchResultSchema } from '../../src/api/ProductsApiClient';
 
 [{ searchQuery: 'phone' }].forEach(({ searchQuery }) => {
   test(`GET /products/search?q=${searchQuery} succeeds`, async ({ productsApiClient }) => {
@@ -8,6 +9,14 @@ import { test, expect } from '../../src/infrastructure/fixtures';
       response.status(),
       `Expected GET /products/search?q=${searchQuery} to return status 200`,
     ).toBe(200);
+
+    const schemaValidation = productSearchResultSchema.safeParse(searchResult);
+    expect(
+      schemaValidation.success,
+      schemaValidation.success
+        ? 'Expected the response to match the product search schema'
+        : `Expected the response to match the product search schema: ${JSON.stringify(schemaValidation.error.issues)}`,
+    ).toBe(true);
 
     expect(searchResult.products, 'Expected searchResult.products to be defined').toBeDefined();
     expect(
