@@ -18,6 +18,10 @@ export class ProductsPage extends BasePage {
       .describe('Sort products dropdown');
   }
 
+  public async navigateToProductsPage(): Promise<void> {
+    await this.navigateToUrlPath(strings.pages.products.urlPath);
+  }
+
   public async getProductCards(): Promise<ProductCard[]> {
     const cardCount = await this.productCardRoots.count();
     return Array.from(
@@ -90,7 +94,7 @@ export class ProductsPage extends BasePage {
   }
 
   public async validateProductsPageDisplay(): Promise<void> {
-    await this.assertCurrentPageUrlContains('inventory.html', 'Products page URL');
+    await this.assertCurrentPageUrlContains(strings.pages.products.urlPath, 'Products page URL');
     await this.assertPageTitleIsVisible();
     await this.assertSortDropdownIsVisible();
     await this.assertProductCardsAreVisible();

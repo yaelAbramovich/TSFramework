@@ -30,10 +30,20 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'ui',
-      testDir: './tests/ui',
+      name: 'setup',
+      testDir: './tests/setup',
+      testMatch: /\.setup\.ts$/,
       use: {
         ...devices['Desktop Chrome'],
+      },
+    },
+    {
+      name: 'ui',
+      testDir: './tests/ui',
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.auth/user.json',
       },
     },
     {
