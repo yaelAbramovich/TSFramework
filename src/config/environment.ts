@@ -23,6 +23,7 @@ function readNumericEnvVar(name: string, defaultValue: number): number {
 export interface EnvironmentConfiguration {
   uiBaseUrl: string;
   apiBaseUrl: string;
+  loginServiceBaseUrl: string;
   defaultActionTimeoutMs: number;
   defaultNavigationTimeoutMs: number;
   logLevel: SupportedLogLevel;
@@ -31,6 +32,7 @@ export interface EnvironmentConfiguration {
 export const environmentConfiguration: EnvironmentConfiguration = {
   uiBaseUrl: readEnvVar('UI_BASE_URL', 'https://the-internet.herokuapp.com'),
   apiBaseUrl: readEnvVar('API_BASE_URL', 'https://jsonplaceholder.typicode.com'),
+  loginServiceBaseUrl: readEnvVar('LOGIN_SERVICE_BASE_URL', 'http://localhost:4010'),
   defaultActionTimeoutMs: readNumericEnvVar('DEFAULT_ACTION_TIMEOUT_MS', 10_000),
   defaultNavigationTimeoutMs: readNumericEnvVar('DEFAULT_NAVIGATION_TIMEOUT_MS', 30_000),
   logLevel: readEnvVar('LOG_LEVEL', 'info') as SupportedLogLevel,

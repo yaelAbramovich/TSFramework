@@ -1,4 +1,6 @@
 import { test as base } from '@playwright/test';
+import { LoginApiClient } from '../api/LoginApiClient';
+import { environmentConfiguration } from '../config/environment';
 
 /**
  * Global Playwright fixtures — everything that is broadly useful across the
@@ -18,8 +20,20 @@ import { test as base } from '@playwright/test';
  * test-scoped, so construction stays aligned with the browser/request
  * lifecycle.
  */
-export type TestFixtures = Record<string, never>;
+export interface TestFixtures {
+  loginApiClient: LoginApiClient;
+}
 
-export const test = base.extend<TestFixtures>({});
+export const test = base.extend<TestFixtures>({
+  // The login service has its own base URL, so it gets its own request context
+  // instead of the project-level `request` fixture.
+  loginApiClient: async ({ playwright }, use) => {
+    const loginRequestContext = await playwright.request.newContext({
+      baseURL: environmentConfiguration.loginServiceBaseUrl,
+    });
+    await use(new LoginApiClient(loginRequestContext));
+    await loginRequestContext.dispose();
+  },
+});
 
 export { expect } from '@playwright/test';

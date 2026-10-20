@@ -11,6 +11,7 @@ import { environmentConfiguration } from './src/config/environment';
  */
 export default defineConfig({
   testDir: './tests',
+  globalSetup: './mock-services/login-service/globalSetup.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -28,6 +29,10 @@ export default defineConfig({
     navigationTimeout: environmentConfiguration.defaultNavigationTimeoutMs,
   },
   projects: [
+    {
+      name: 'unit',
+      testDir: './tests/unit',
+    },
     {
       name: 'ui',
       testDir: './tests/ui',

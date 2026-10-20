@@ -4,13 +4,18 @@
   "description": "TypeScript + Playwright automation framework supporting UI and API tests",
   "scripts": {
     "test": "playwright test",
+    "test:unit": "playwright test --project=unit",
     "test:ui": "playwright test tests/ui",
     "test:api": "playwright test tests/api",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
     "report": "playwright show-report",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "docker:build": "docker compose build",
+    "docker:test": "docker compose run --rm tests",
+    "docker:test:api": "docker compose run --rm tests npm run test:api",
+    "docker:test:ui": "docker compose run --rm tests npm run test:ui"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.0",

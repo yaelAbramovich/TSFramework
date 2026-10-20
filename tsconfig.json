@@ -13,6 +13,6 @@
     "outDir": "./dist",
     "rootDir": "./"
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "playwright.config.ts"],
+  "include": ["src/**/*.ts", "mock-services/**/*.ts", "tests/**/*.ts", "playwright.config.ts"],
   "exclude": ["node_modules", "dist", "test-results", "playwright-report"]
 }
